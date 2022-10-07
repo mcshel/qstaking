@@ -1,4 +1,4 @@
-# Qraffle
+# Qstaking
 
 *Qstaking* is a custom implementation of NFT staking program. It is partially based on [Gemworks](https://github.com/gemworks).
 
