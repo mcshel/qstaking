@@ -1,7 +1,9 @@
 [features]
 seeds = false
+deploy = true
+
 [programs.localnet]
-qstaking = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+qstaking = "4sjvE7PiZ5rzv6y7HxE6kTQqRrMAoERSYKv4hhwhNccb"
 
 [registry]
 url = "https://anchor.projectserum.com"
@@ -12,3 +14,12 @@ wallet = "/home/mpetac/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[test]
+startup_wait = 2000
+
+[test.validator]
+url = "https://api.devnet.solana.com"
+
+# [[test.validator.clone]]
+# address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
