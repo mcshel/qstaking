@@ -1,5 +1,5 @@
 // use bitflags::bitflags;
-use metaplex_token_metadata as metaplex;
+use mpl_token_metadata as metaplex;
 //use metaplex_token_metadata::state::Metadata;
 use anchor_lang::prelude::*;
 
@@ -16,6 +16,7 @@ use crate::errors::*;
 #[account]
 pub struct Whitelist {
 
+    // Bump used in generating the Whitelist account
     pub bump: u8,
     
     // whitelist type
@@ -51,7 +52,6 @@ impl Whitelist {
         let (whitelist_account, _bump) = Pubkey::find_program_address(seed, program_account);
         
         //msg!("Comparing whitelist accounts: {} vs {}", whitelist_account, *whitelist);
-        
         require_keys_eq!(
             whitelist_account,
             *whitelist,
@@ -72,7 +72,8 @@ impl Whitelist {
             
         } else if self.whitelist_type == 1 {
             //msg!("Checking creator proof");
-            let metadata = metaplex::state::Metadata::from_account_info(mint_metadata)?;
+            //let metadata = metaplex::state::Metadata::from_account_info(mint_metadata)?;
+            let metadata: metaplex::state::Metadata = metaplex::state::TokenMetadataAccount::from_account_info(mint_metadata)?;
             for creator in &metadata.data.creators.unwrap() {
             
                 if !creator.verified {

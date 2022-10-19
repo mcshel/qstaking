@@ -1,8 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::Mint;
 
-use crate::program::Qstaking;
-use crate::states::Mine;
+use crate::states::*;
 // use crate::errors::QstakingErrors;
 
 
@@ -10,19 +8,17 @@ use crate::states::Mine;
  *  Initialize a new Mine.
  *  There is a hard limit of 1 Mine per Qstaking smart contract. The init() function can only be called 
  *  by the owner of the smart contract instance.
- */
  
 
 #[derive(Accounts)]
 pub struct InitMine<'info> {
-
-    // Address of the Qstaking program
-    #[account(constraint = program.programdata_address()? == Some(program_data.key()))]
-    pub program: Program<'info, Qstaking>,
     
-    // Address of the Qstaking program data
-    #[account(constraint = program_data.upgrade_authority_address == Some(authority.key()))]
-    pub program_data: Account<'info, ProgramData>,
+    // AdminSettings account
+    #[account(
+        seeds = [b"admin".as_ref()],
+        bump,
+    )]
+    pub admin_settings: Account<'info, AdminSettings>,
     
     // Address of the Mine
     #[account(
@@ -41,14 +37,14 @@ pub struct InitMine<'info> {
     pub mint: Account<'info, Mint>,
     
     // Authority for creating the Mine -> upgrade authority of the Qstaking program
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = admin_settings.admin_key == authority.key(),
+    )]
     pub authority: Signer<'info>,
     
     // System program
     pub system_program: Program<'info, System>,
-    
-    // Rent program
-    pub rent: Sysvar<'info, Rent>,
 }
 
 
@@ -63,18 +59,10 @@ pub fn init(ctx: Context<InitMine>, manager: Pubkey) -> Result<()> {
     
     let mine = &mut ctx.accounts.mine;
     mine.initialize(*ctx.bumps.get("mine").unwrap(), &manager, &ctx.accounts.mint.key())?;
-//     mine.bump = *ctx.bumps.get("mine").unwrap();
-//     mine.locked = true;
-//     mine.manager = manager;
-//     mine.mint = ctx.accounts.mint.key();
-//     mine.rate = 0;
-//     mine.staked_miners = 0;
-//     mine.staked_points = 0;
-//     mine.accrued_rewards = 0;
-//     mine.accrued_timestamp = 0;
         
     Ok(())
 }
+ */
 
 
 
@@ -85,14 +73,13 @@ pub fn init(ctx: Context<InitMine>, manager: Pubkey) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct SetMineManager<'info> {
-
-    // Address of the Qstaking program
-    #[account(constraint = program.programdata_address()? == Some(program_data.key()))]
-    pub program: Program<'info, Qstaking>,
     
-    // Address of the Qstaking program data
-    #[account(constraint = program_data.upgrade_authority_address == Some(authority.key()))]
-    pub program_data: Account<'info, ProgramData>,
+    // AdminSettings account
+    #[account(
+        seeds = [b"admin".as_ref()],
+        bump,
+    )]
+    pub admin_settings: Account<'info, AdminSettings>,
     
     // Address of the Mine
     #[account(
@@ -103,7 +90,10 @@ pub struct SetMineManager<'info> {
     pub mine: Account<'info, Mine>,
     
     // Authority for creating the Mine -> upgrade authority of the Qstaking program
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = admin_settings.admin_key == authority.key(),
+    )]
     pub authority: Signer<'info>,
 }
 
@@ -166,7 +156,7 @@ pub fn set_locked(ctx: Context<SetMineLock>, locked: bool) -> Result<()> {
 
  
 #[derive(Accounts)]
-pub struct SetMineRate<'info> {
+pub struct SetMineParameters<'info> {
 
     // Address of the Mine
     #[account(
@@ -186,11 +176,15 @@ pub struct SetMineRate<'info> {
 
 
 
-pub fn set_rate(ctx: Context<SetMineRate>, rate: u64) -> Result<()> {
+pub fn set_parameters(ctx: Context<SetMineParameters>, rate: u64, price: u64, cooldown: u64) -> Result<()> {
     
+    let clock = Clock::get()?;
     let mine = &mut ctx.accounts.mine;
-    mine.update_accrued_rewards()?;
+    
+    mine.update_accrued_rewards(clock.unix_timestamp)?;
     mine.rate = rate;
+    mine.price = price;
+    mine.cooldown = cooldown;
     
     Ok(())
 }
@@ -216,9 +210,11 @@ pub struct UpdateMine<'info> {
 
 
 pub fn update(ctx: Context<UpdateMine>) -> Result<()> {
-    
+
+    let clock = Clock::get()?;
     let mine = &mut ctx.accounts.mine;
-    mine.update_accrued_rewards()?;
+    
+    mine.update_accrued_rewards(clock.unix_timestamp)?;
     
     Ok(())
 }

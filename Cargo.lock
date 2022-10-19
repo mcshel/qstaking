@@ -749,26 +749,28 @@ dependencies = [
 ]
 
 [[package]]
-name = "metaplex-token-metadata"
-version = "0.0.1"
+name = "mpl-token-metadata"
+version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "abcc939f0afdc6db054b9998a1292d0a016244b382462e61cfc7c570624982cb"
+checksum = "e719d7e0b5a9d97c7fd4d6f52ebfc32f1e3942e068173e47355f8c275656488a"
 dependencies = [
  "arrayref",
  "borsh",
- "metaplex-token-vault",
+ "mpl-token-vault",
  "num-derive",
  "num-traits",
+ "shank",
  "solana-program",
+ "spl-associated-token-account",
  "spl-token",
  "thiserror",
 ]
 
 [[package]]
-name = "metaplex-token-vault"
-version = "0.0.1"
+name = "mpl-token-vault"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5211991ba3273df89cd5e0f6f558bc8d7453c87c0546f915b4a319e1541df33"
+checksum = "7ade4ef15bc06a6033076c4ff28cba9b42521df5ec61211d6f419415ace2746a"
 dependencies = [
  "borsh",
  "num-derive",
@@ -910,8 +912,8 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
- "bitflags",
- "metaplex-token-metadata",
+ "mpl-token-metadata",
+ "solana-program",
 ]
 
 [[package]]
@@ -1089,6 +1091,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "shank"
+version = "0.0.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b54c657cbe18aaff6d5042a4d48f643fdd2a826dfc7161de98ee28e5bd7e85e0"
+dependencies = [
+ "shank_macro",
+]
+
+[[package]]
+name = "shank_macro"
+version = "0.0.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b43a02ae007b64b177f4dbb21d322f276458e4860f9fefbd8b9b791c21644ab"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "shank_macro_impl",
+ "syn",
+]
+
+[[package]]
+name = "shank_macro_impl"
+version = "0.0.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d36cdf68202db080a13ef0300c369fc691695265e3d0ab0fa08d4734b0cfb66"
+dependencies = [
+ "anyhow",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "syn",
+]
+
+[[package]]
 name = "smallvec"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1195,11 +1231,10 @@ dependencies = [
 
 [[package]]
 name = "spl-associated-token-account"
-version = "1.0.5"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b013067447a1396303ddfc294f36e3d260a32f8a16c501c295bcdc7de39b490"
+checksum = "393e2240d521c3dd770806bff25c2c00d761ac962be106e14e22dd912007f428"
 dependencies = [
- "borsh",
  "solana-program",
  "spl-token",
 ]

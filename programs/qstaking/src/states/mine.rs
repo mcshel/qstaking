@@ -6,30 +6,37 @@ use crate::errors::*;
 #[account]
 pub struct Mine {
 
+    // Bump used in generating the Mine account
     pub bump: u8,
     
-    // lock controling if NFTs can be staked into the pool
+    // Lock controling if NFTs can be staked into the pool
     pub locked: bool,
     
-    // mine manager
+    // Mine manager
     pub manager: Pubkey,
     
-    // account of the mint that is being mined
+    // Account of the mint that is being mined
     pub mint: Pubkey,
     
-    // mining reward rate in terms of tokens / mining point / s
+    // Mining reward rate in units of Reward Tokens / mining point / s
     pub rate: u64,
     
-    // number of staked NFTs
-    pub staked_miners: u16,
+    // Base price for staking in the Mine pool
+    pub price: u64,
     
-    // total number of staked mining points
+    // Cooldown period for re-staking in Mine pool
+    pub cooldown: u64,
+    
+    // Number of staked NFTs
+    pub staked_characters: u16,
+    
+    // Total number of staked mining points
     pub staked_points: u64,
     
-    // comulative accrued rewards per mining point
+    // Comulative accrued rewards per mining point
     pub accrued_rewards: u128,
     
-    // timestamp when the comulative accrued reward were logged
+    // Timestamp the of the last comulative accrued reward update
     pub accrued_timestamp: i64,
 }
 
@@ -42,7 +49,9 @@ impl Mine {
         self.manager = *manager;
         self.mint = *mint;
         self.rate = 0;
-        self.staked_miners = 0;
+        self.price = 0;
+        self.cooldown = 0;
+        self.staked_characters = 0;
         self.staked_points = 0;
         self.accrued_rewards = 0;
         self.accrued_timestamp = 0;
@@ -51,11 +60,8 @@ impl Mine {
     }
     
 
-    pub fn update_accrued_rewards(&mut self) -> Result<()> {
-    
-        let clock = Clock::get()?;
+    pub fn update_accrued_rewards(&mut self, timestamp: i64) -> Result<()> {
         
-        let timestamp: i64 = clock.unix_timestamp;
         let timestamp_delta_signed: i64 = timestamp.checked_sub(self.accrued_timestamp).ok_or(QstakingErrors::InvalidComputation).unwrap();
         let timestamp_delta: u128 = u128::try_from(timestamp_delta_signed).unwrap();
         let mut newly_accrued_rewards: u128 =  u128::try_from(self.rate).unwrap();
@@ -68,23 +74,23 @@ impl Mine {
     }
     
     
-    pub fn add_miner(&mut self, miner_points: u32) -> Result<()> {
+    pub fn add_character(&mut self, timestamp: i64, mining_points: u64) -> Result<()> {
     
-        self.update_accrued_rewards()?;
-    
-        self.staked_miners = self.staked_miners.checked_add(1).ok_or(QstakingErrors::InvalidComputation).unwrap();
-        self.staked_points = self.staked_points.checked_add(u64::try_from(miner_points).unwrap()).ok_or(QstakingErrors::InvalidComputation).unwrap();
+        self.update_accrued_rewards(timestamp)?;
+        
+        self.staked_characters = self.staked_characters.checked_add(1).ok_or(QstakingErrors::InvalidComputation).unwrap();
+        self.staked_points = self.staked_points.checked_add(mining_points).ok_or(QstakingErrors::InvalidComputation).unwrap();
         
         Ok(())
     }
     
     
-    pub fn remove_miner(&mut self, miner_points: u32) -> Result<()> {
+    pub fn remove_character(&mut self, timestamp: i64, mining_points: u64) -> Result<()> {
         
-        self.update_accrued_rewards()?;
+        self.update_accrued_rewards(timestamp)?;
         
-        self.staked_miners = self.staked_miners.checked_sub(1).ok_or(QstakingErrors::InvalidComputation).unwrap();
-        self.staked_points = self.staked_points.checked_sub(u64::try_from(miner_points).unwrap()).ok_or(QstakingErrors::InvalidComputation).unwrap();
+        self.staked_characters = self.staked_characters.checked_sub(1).ok_or(QstakingErrors::InvalidComputation).unwrap();
+        self.staked_points = self.staked_points.checked_sub(mining_points).ok_or(QstakingErrors::InvalidComputation).unwrap();
         
         Ok(())
     }
